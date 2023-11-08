@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Карта</title>
+    <script src="https://api-maps.yandex.ru/2.1/?apikey=41ed5616-f0d7-41fe-9d65-d7aaad4012f5&lang=ru_RU" type="text/javascript"></script>
+</head>
+
+<body>
+    <div id="map" style="width: 800px; height: 600px;"></div>
+    <p id="location"></p>
+    <p id="distance"></p>
+    <button id="calculateDistance">Рассчитать расстояние</button>
+    <script>
+        var map;
+        var userLocation;
+        var selectedPoint;
+
+        ymaps.ready(init);
+
+        function init() {
+            map = new ymaps.Map("map", {
+                center: [41.328321, 69.199509], 
+                zoom: 12
+            });
+
+            // Получение местоположения пользователя
+            ymaps.geolocation.get().then(function(result) {
+                userLocation = result.geoObjects.get(0).geometry.getCoordinates();
+                document.getElementById("location").innerHTML = "Местоположение пользователя: " + userLocation;
+
+                // Добавление метки текущего местоположения на карту
+                var userPlacemark = new ymaps.Placemark(userLocation, {
+                    iconCaption: 'Ваше местоположение'
+                }, {
+                    preset: 'islands#blueCircleDotIconWithCaption'
+                });
+                map.geoObjects.add(userPlacemark);
+
+                // Центрирование карты на текущем местоположении пользователя
+                map.setCenter(userLocation);
+            });
+
+
+            // Добавление метки на карту
+            map.events.add("click", function(event) {
+                if (selectedPoint) {
+                    map.geoObjects.remove(selectedPoint);
+                }
+                selectedPoint = new ymaps.Placemark(event.get("coords"));
+                map.geoObjects.add(selectedPoint);
+            });
+
+            // Вычисление расстояния
+            document.getElementById("calculateDistance").addEventListener("click", function() {
+                if (userLocation && selectedPoint) {
+                    var distance = ymaps.coordSystem.geo.getDistance(userLocation, selectedPoint.geometry.getCoordinates());
+                    document.getElementById("distance").innerHTML = "Расстояние между местоположением пользователя и выбранной точкой: " + distance.toFixed(2) + " метров";
+
+                    // Отправка данных на сервер
+                    var data = {
+                        userLocation: userLocation,
+                        selectedPoint: selectedPoint.geometry.getCoordinates(),
+                        distance: distance
+                    };
+
+                    fetch("URL_сервера", {
+                            method: "POST",
+                            body: JSON.stringify(data),
+                            headers: {
+                                "Content-Type": "application/json"
+                            }
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            // Обработка ответа сервера, если необходимо
+                        })
+                        .catch(error => {
+                            console.error("Ошибка при отправке данных на сервер: " + error);
+                        });
+
+                }
+            });
+        }   
+    </script>
+</body>
+
+</html>
