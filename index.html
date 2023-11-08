@@ -8,8 +8,9 @@
 </head>
 
 <body>
-    <div id="map" style="width: 800px; height: 600px;"></div>
+    <div id="map" style="width: 100%; height: 800px;"></div>
     <p id="location"></p>
+    <p id="selectedPointLocation"></p>
     <p id="distance"></p>
     <button id="calculateDistance">Рассчитать расстояние</button>
     <script>
@@ -50,6 +51,10 @@
                 }
                 selectedPoint = new ymaps.Placemark(event.get("coords"));
                 map.geoObjects.add(selectedPoint);
+
+                // Отображение координат выбранной точки
+                var selectedPointCoordinates = selectedPoint.geometry.getCoordinates();
+                document.getElementById("selectedPointLocation").innerHTML = "Координаты выбранной точки: " + selectedPointCoordinates;
             });
 
             // Вычисление расстояния
@@ -74,7 +79,7 @@
                         })
                         .then(response => response.json())
                         .then(data => {
-                            // Обработка ответа сервера, если необходимо
+                            // Обработка ответа сервера
                         })
                         .catch(error => {
                             console.error("Ошибка при отправке данных на сервер: " + error);
